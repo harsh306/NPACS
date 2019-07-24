@@ -70,7 +70,7 @@ def main():
                     sess.run(graph.copy_op2)
                     norm, loss = sess.run([graph.norms , graph.loss_c], feed_dict = { graph.x: ops2.get_batch(config.batch_size,npcs_ae.X)} ) # theta 0 loss
                     step = step+1
-                    print(step,loss)
+                    # print(step,loss)
                     losses.append(loss)
                     lamdas.append(sess.run(graph.l))
                     norms.append(norm)
@@ -78,13 +78,13 @@ def main():
 
         print("Step: %d, lambda %g, Loss: %g" %(step, sess.run(graph.l), loss) )
         code = sess.run(graph.code, feed_dict = { graph.x: npcs_ae.X})
-        if not os.path.exists('../results/'+str(config.omega_exp)):                                                                                 
-            os.makedirs('../results/'+str(config.omega_exp))
+        if not os.path.exists('./results/' + str(config.omega_exp)):
+            os.makedirs('./results/' + str(config.omega_exp))
         ops2.save_plots(code,losses,lamdas,norms,config)
-        saver.save(sess, '../results/'+str(config.omega_exp)+'/model/ds')
-        np.save('../results/'+str(config.omega_exp)+'/losses.npy' , losses)
-        np.save('../results/'+str(config.omega_exp)+'/lamdas.npy' , lamdas)
-        np.save('../results/'+str(config.omega_exp)+'/norms.npy' , norms)
+        saver.save(sess, './results/' + str(config.omega_exp) + '/model/ds')
+        np.save('./results/' + str(config.omega_exp) + '/losses.npy', losses)
+        np.save('./results/' + str(config.omega_exp) + '/lamdas.npy', lamdas)
+        np.save('./results/' + str(config.omega_exp) + '/norms.npy', norms)
 
     
 if __name__ == '__main__':

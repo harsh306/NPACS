@@ -26,6 +26,7 @@ import ops2
 def main():
     losses = []
     lamdas = []
+    norms = []
     #args = get_args()
     config = process_config('example.json')
 
@@ -47,11 +48,19 @@ def main():
             loss = sess.run(graph.loss_c, feed_dict = { graph.x: ops2.get_batch(config.batch_size,npcs_ae.X)})  # No name collision anymore.
             losses.append(loss)
             lamdas.append(sess.run(graph.l))
+            norms.append(loss)
             assert not np.isnan(loss)
 
             if (step % config.u_freq == 0) and (step > 0) and (l_dash<1.0) and (config.secant_method) : #stop the secant after 0.99
-                #l_dash_prev = sess.run(graph.l_prev, feed_dict= {graph.l_prev:l_dash})   
-                l_dash = sess.run(graph.l_new,feed_dict={graph.delta_l: 8e-3})
+                # l_dash_prev = sess.run(graph.l_prev, feed_dict= {graph.l_prev:l_dash})
+                if config.use_act == 'c_sigmoid':
+                    if l_dash >= 0.8:
+                        l_dash = sess.run(graph.l_new, feed_dict={graph.delta_l: 8e-4})
+                    else:
+                        l_dash = sess.run(graph.l_new, feed_dict={graph.delta_l: 2e-2})
+                else:
+                    l_dash = sess.run(graph.l_new, feed_dict={graph.delta_l: 8e-3})
+
                 #graph.B = sess.run(graph.copy_op)
 
                 #config.omega = sess.run(graph.omega, feed_dict= {graph.omega: config.omega})
@@ -59,12 +68,12 @@ def main():
 
         print("Step: %d, lambda %g, Loss: %g" %(step, sess.run(graph.l), loss) )
         code = sess.run(graph.code, feed_dict = { graph.x: npcs_ae.X})
-        if not os.path.exists('../results/'+str(config.omega_exp)):
-            os.makedirs('../results/'+str(config.omega_exp))
-        ops2.save_plots(code,losses,lamdas,config)
-        saver.save(sess, '../results/'+str(config.omega_exp)+'/model/ds')
-        np.save('../results/'+str(config.omega_exp)+'/losses.npy' , losses)
-        np.save('../results/'+str(config.omega_exp)+'/lamdas.npy' , lamdas)
+        if not os.path.exists('./results/' + str(config.omega_exp)):
+            os.makedirs('./results/' + str(config.omega_exp))
+        ops2.save_plots(code, losses, lamdas, norms, config)
+        saver.save(sess, './results/' + str(config.omega_exp) + '/model/ds')
+        np.save('./results/' + str(config.omega_exp) + '/losses.npy', losses)
+        np.save('./results/' + str(config.omega_exp) + '/lamdas.npy', lamdas)
 
     
 if __name__ == '__main__':

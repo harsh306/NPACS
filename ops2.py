@@ -1,21 +1,31 @@
-import numpy as np
-import tensorflow as tf
-#from pythonsmote.SMOTE import SMOTE
-from tensorflow.examples.tutorials.mnist import input_data
 import itertools
-from sklearn import datasets
+import pickle
 
 import matplotlib
-matplotlib.use('Agg')
+import numpy as np
+import tensorflow as tf
+from sklearn import datasets
+# from pythonsmote.SMOTE import SMOTE
+from tensorflow.examples.tutorials.mnist import input_data
 
+matplotlib.use('Agg')
+import sys
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import pandas as pd
 
 
 def save_plots(code,losses,lamdas,norms,config):
-    data = input_data.read_data_sets('data/fashion')
-    final = np.column_stack((code[:,0:2], np.asarray(data.train.labels)))
+    def _get_labels():
+        if config.data == 'cifar':
+            _, labels = CIFAR_data()
+        else:
+            data = input_data.read_data_sets('data/fashion')
+            labels = data.train.labels
+        return labels
+
+    labels = _get_labels()
+    final = np.column_stack((code[:, 0:2], np.asarray(labels)))
     final_df = pd.DataFrame(final,columns =['pc1','pc2','targets'])
     final_df.head()
     fig = plt.figure(figsize = (25,25))
@@ -23,7 +33,7 @@ def save_plots(code,losses,lamdas,norms,config):
     ax.set_xlabel(' Component 1', fontsize = 15)
     ax.set_ylabel(' Component 2', fontsize = 15)
     ax.set_title('Code components ', fontsize = 15)
-    targets = set(data.train.labels)
+    targets = set(labels)
     colors = cm.rainbow(np.linspace(0, 1, 10))
     for target, color in zip(targets,colors):
         indicesToKeep = final_df['targets'] == target
@@ -48,7 +58,7 @@ def save_plots(code,losses,lamdas,norms,config):
     ax4.set_title('norms', fontsize=15)
     ax4.set_xlabel('Global steps', fontsize=15)
     ax4.set_ylabel('norm', fontsize=15)
-    fig.savefig('../results/'+str(config.omega_exp)+'/'+str(config.use_act)+'.png')
+    fig.savefig('./results/' + str(config.omega_exp) + '/' + str(config.use_act) + '.png')
     plt.close()
     return
     
@@ -117,6 +127,12 @@ def get_data(data,fill_points,a_):
         code_dim = 2
         #X = center_data(X)
         return X, d_dim, code_dim
+    elif data == 'cifar':
+        X, _ = CIFAR_data()
+        X = X / 255.0
+        d_dim = 3072
+        code_dim = 2
+        return X, d_dim, code_dim
     elif data == 'swiss':
         X_o = SWISS_data()
         #X_o = 1 / (1 + np.exp(-1* X_o))
@@ -144,6 +160,30 @@ def MNIST_data():
 def FASHION_data():
     data = input_data.read_data_sets('data/fashion')
     return data.train.images
+
+
+def load_cfar10_batch(cifar10_dataset_folder_path, batch_id):
+    with open(cifar10_dataset_folder_path + '/data_batch_' + str(batch_id), mode='rb') as file:
+        # note the encoding type is 'latin1'
+        batch = pickle.load(file, encoding='latin1')
+
+    features = batch['data'].reshape((len(batch['data']), 3, 32, 32)).transpose(0, 2, 3, 1)
+    features = features.reshape((len(batch['data']), 3 * 32 * 32))
+    print('f', features.shape)
+    labels = batch['labels']
+
+    return features, labels
+
+
+def CIFAR_data():
+    images_array, image_labels = load_cfar10_batch(cifar10_dataset_folder_path='../data/cifar', batch_id=1)
+    for i in range(2, 6):
+        images_array1, image_labels1 = load_cfar10_batch(cifar10_dataset_folder_path='../data/cifar', batch_id=i)
+        images_array = np.concatenate((images_array, images_array1), axis=0)
+        image_labels = np.concatenate((image_labels, image_labels1), axis=0)
+
+    return images_array, image_labels
+
 
 def GRID_data():
     grid = np.array([np.array([i, j]) for i, j in 

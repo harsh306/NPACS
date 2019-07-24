@@ -1,16 +1,16 @@
 {
-    "seed": 85, 
+    "seed": 85,
     "batch_size": 200,
     "max_steps" : 200000,
     "lr" : 0.0005,
     "fill_points" : 200,
-    "data" : "fashion",
+    "data": "cifar",
     "svd" : true,
     "depth" : 8,
-    "secant_method" : false,
+    "secant_method": true,
     "u_freq" : 10,
     "omega" : 10.0,
-    "omega_exp": 35,
+    "omega_exp": 53,
     "adaptive_threshold" : 100,
     "omega_min" : 0.5,
     "omega_max" : 20,
@@ -24,6 +24,6 @@
     "delta_l_prev" : 0.02,
     "norm_strict": 0.05,
     "loss_strict" : 0.02,
-    "use_act" : "sigmoid",
+    "use_act": "c_tanh",
     "l_init" : 0.01
 }

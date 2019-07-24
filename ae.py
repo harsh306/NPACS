@@ -1,14 +1,8 @@
-import numpy as np
-import tensorflow as tf
-import ops2
 import sys
-import matplotlib.pyplot as plt
-import collections
-import math
-import sys
-import time
-import os
 
+import tensorflow as tf
+
+import ops2
 
 sys.path.append(os.getcwd())
 
@@ -47,7 +41,7 @@ class NPCS_AE:
             decoder = ops2.activation(self.config.use_act, ops2.etlinear2(code,50,self.ev,scope ='decoder3'),l)
             decoder = ops2.activation(self.config.use_act, ops2.etlinear2(decoder,100,self.ev,scope ='decoder2'),l)
             decoder = ops2.activation(self.config.use_act, ops2.etlinear2(decoder,200,self.ev,scope ='decoder1'),l)
-            out =  ops2.etlinear2(decoder,784,self.ev,scope ='output')
+            out = ops2.etlinear2(decoder, self.d_dim, self.ev, scope='output')
             loss = tf.reduce_mean(tf.square(x - out))
             return loss, out, code
 
@@ -68,7 +62,7 @@ class NPCS_AE:
             decoder = ops2.activation(self.config.use_act, ops2.stlinear2(decoder,100,self.ev,scope ='decoder3'),l)
             decoder = ops2.activation(self.config.use_act, ops2.stlinear2(decoder,200,self.ev,scope ='decoder2'),l)
             decoder = ops2.activation(self.config.use_act, ops2.stlinear2(decoder,500,self.ev,scope ='decoder1'),l)
-            out = ops2.stlinear2(decoder,784,self.ev,scope ='output')
+            out = ops2.stlinear2(decoder, self.d_dim, self.ev, scope='output')
             loss = tf.reduce_mean(tf.square(x - out))
             return loss, out, code
 
@@ -105,8 +99,9 @@ class NPCS_AE:
                 with tf.variable_scope('prev2'):
                     loss_p2, output_p2, _ = self.autoencoder16_svd(x,l)
 
-        
-        optimizer =  tf.train.RMSPropOptimizer(self.config.lr)
+        # optimizer = tf.train.GradientDescentOptimizer(self.config.lr)
+        # optimizer =  tf.train.RMSPropOptimizer(self.config.lr)
+        optimizer = tf.train.AdamOptimizer(self.config.lr)
         grads_and_vars = optimizer.compute_gradients(loss_c)
         opt = optimizer.apply_gradients(grads_and_vars)
         grads, _ = list(zip(*grads_and_vars))

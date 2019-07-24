@@ -58,14 +58,14 @@ def main():
 
         #print("Step: %d, lambda %g, Loss: %g" %(step, sess.run(graph.l), loss) )
         code = sess.run(graph.code, feed_dict = { graph.x: npcs_ae.X})
-        if not os.path.exists('../results/'+str(config.omega_exp)):                                                                                 
-            os.makedirs('../results/'+str(config.omega_exp))
+        if not os.path.exists('./results/' + str(config.omega_exp)):
+            os.makedirs('./results/' + str(config.omega_exp))
         ops2.save_plots(code,losses,lamdas,norms,config)
-        saver.save(sess, '../results/'+str(config.omega_exp)+'/model/ds')
-        np.save('../results/'+str(config.omega_exp)+'/losses.npy' , losses)
-        np.save('../results/'+str(config.omega_exp)+'/lamdas.npy' , lamdas)
-        np.save('../results/'+str(config.omega_exp)+'/norms.npy' , norms)
+        saver.save(sess, './results/' + str(config.omega_exp) + '/model/ds')
+        np.save('./results/' + str(config.omega_exp) + '/losses.npy', losses)
+        np.save('./results/' + str(config.omega_exp) + '/lamdas.npy', lamdas)
+        np.save('./results/' + str(config.omega_exp) + '/norms.npy', norms)
 
-    
+
 if __name__ == '__main__':
     main()
