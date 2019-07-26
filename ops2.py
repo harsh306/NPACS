@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-def save_plots(code,losses,lamdas,norms,config):
+def save_plots(code, losses, val_losses, lamdas, norms, config):
     def _get_labels():
         if config.data == 'cifar':
             _, labels = CIFAR_data()
@@ -54,7 +54,7 @@ def save_plots(code,losses,lamdas,norms,config):
     ax3.set_xlabel('Global steps', fontsize=15)
     ax3.set_ylabel('lambda', fontsize=15)
     ax4 = fig.add_subplot(2,2,4)
-    ax4.plot(norms)
+    ax4.plot(val_losses)
     ax4.set_title('norms', fontsize=15)
     ax4.set_xlabel('Global steps', fontsize=15)
     ax4.set_ylabel('norm', fontsize=15)
@@ -121,18 +121,20 @@ def get_data(data,fill_points,a_):
         code_dim = 2
         return X, d_dim, code_dim
     elif data == 'fashion':
-        X = np.asarray(FASHION_data())
+        X, X_val = np.asarray(FASHION_data())
         #X  = X / 255.0
         d_dim = 784
         code_dim = 2
         #X = center_data(X)
-        return X, d_dim, code_dim
+        return X, X_val, d_dim, code_dim
     elif data == 'cifar':
         X, _ = CIFAR_data()
         X = X / 255.0
         d_dim = 3072
         code_dim = 2
-        return X, d_dim, code_dim
+        X = X[:40000]
+        X_val = X[-10000:]
+        return X, X_val, d_dim, code_dim
     elif data == 'swiss':
         X_o = SWISS_data()
         #X_o = 1 / (1 + np.exp(-1* X_o))
@@ -159,7 +161,7 @@ def MNIST_data():
     return mnist.train.images
 def FASHION_data():
     data = input_data.read_data_sets('data/fashion')
-    return data.train.images
+    return data.train.images, data.test.images
 
 
 def load_cfar10_batch(cifar10_dataset_folder_path, batch_id):

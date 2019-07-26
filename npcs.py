@@ -27,11 +27,14 @@ def main():
     losses = []
     lamdas = []
     norms = []
+    val_losses = []
+    val_loss = 0.2
     #args = get_args()
     config = process_config('example.json')
 
     npcs_ae = NPCS_AE(config)
     step =0
+
     l_dash = config.l_init
     graph = npcs_ae.master_graph()
     np.random.seed(config.seed)
@@ -43,6 +46,12 @@ def main():
             step = step +1
             if step == config.max_steps:
                 break;
+
+            if (step % config.val_freq == 0):
+                val_loss = sess.run(graph.loss_c, feed_dict={graph.x: npcs_ae.X_val})
+                val_losses.append(val_loss)
+            else:
+                val_losses.append(val_loss)
             
               
             norm, _ = sess.run([graph.norms, graph.opt], feed_dict = { graph.x: ops2.get_batch(config.batch_size,npcs_ae.X)})
@@ -80,11 +89,12 @@ def main():
         code = sess.run(graph.code, feed_dict = { graph.x: npcs_ae.X})
         if not os.path.exists('./results/' + str(config.omega_exp)):
             os.makedirs('./results/' + str(config.omega_exp))
-        ops2.save_plots(code,losses,lamdas,norms,config)
+        ops2.save_plots(code, losses, val_losses, lamdas, norms, config)
         saver.save(sess, './results/' + str(config.omega_exp) + '/model/ds')
         np.save('./results/' + str(config.omega_exp) + '/losses.npy', losses)
         np.save('./results/' + str(config.omega_exp) + '/lamdas.npy', lamdas)
         np.save('./results/' + str(config.omega_exp) + '/norms.npy', norms)
+        np.save('./results/' + str(config.omega_exp) + '/val_losses.npy', val_losses)
 
     
 if __name__ == '__main__':

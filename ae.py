@@ -1,3 +1,4 @@
+import os
 import sys
 
 import tensorflow as tf
@@ -13,7 +14,7 @@ class AttrDict(dict):
 
 class NPCS_AE:
     def __init__(self, config):
-        self.X, self.d_dim, self.code_dim = ops2.get_data(config.data, config.fill_points, 1.0)
+        self.X, self.X_val, self.d_dim, self.code_dim = ops2.get_data(config.data, config.fill_points, 1.0)
         self.config = config
         self.limit = 1.0
         self.ev = None 
@@ -99,9 +100,13 @@ class NPCS_AE:
                 with tf.variable_scope('prev2'):
                     loss_p2, output_p2, _ = self.autoencoder16_svd(x,l)
 
-        # optimizer = tf.train.GradientDescentOptimizer(self.config.lr)
-        # optimizer =  tf.train.RMSPropOptimizer(self.config.lr)
-        optimizer = tf.train.AdamOptimizer(self.config.lr)
+        if self.config.opt == 'adam':
+            optimizer = tf.train.AdamOptimizer(self.config.lr)
+        elif self.config.opt == 'rmsprop':
+            optimizer = tf.train.RMSPropOptimizer(self.config.lr)
+        else:
+            optimizer = tf.train.GradientDescentOptimizer(self.config.lr)
+
         grads_and_vars = optimizer.compute_gradients(loss_c)
         opt = optimizer.apply_gradients(grads_and_vars)
         grads, _ = list(zip(*grads_and_vars))

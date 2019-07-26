@@ -9,8 +9,9 @@
     "depth" : 8,
     "secant_method": true,
     "u_freq" : 10,
+    "val_freq": 1000,
     "omega" : 10.0,
-    "omega_exp": 53,
+    "omega_exp": 2001,
     "adaptive_threshold" : 100,
     "omega_min" : 0.5,
     "omega_max" : 20,
@@ -24,6 +25,7 @@
     "delta_l_prev" : 0.02,
     "norm_strict": 0.05,
     "loss_strict" : 0.02,
-    "use_act": "c_tanh",
+    "use_act": "c_sigmoid",
+    "opt": "adam",
     "l_init" : 0.01
 }
