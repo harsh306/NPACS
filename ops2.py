@@ -19,6 +19,7 @@ def save_plots(code, losses, val_losses, lamdas, norms, config):
     def _get_labels():
         if config.data == 'cifar':
             _, labels = CIFAR_data()
+            labels = labels[:40000]
         else:
             data = input_data.read_data_sets('data/fashion')
             labels = data.train.labels
@@ -26,7 +27,7 @@ def save_plots(code, losses, val_losses, lamdas, norms, config):
 
     labels = _get_labels()
     final = np.column_stack((code[:, 0:2], np.asarray(labels)))
-    final_df = pd.DataFrame(final,columns =['pc1','pc2','targets'])
+    final_df = pd.DataFrame(final, columns=['pc1', 'pc2', 'targets'])
     final_df.head()
     fig = plt.figure(figsize = (25,25))
     ax = fig.add_subplot(2,2,1) 
@@ -55,9 +56,9 @@ def save_plots(code, losses, val_losses, lamdas, norms, config):
     ax3.set_ylabel('lambda', fontsize=15)
     ax4 = fig.add_subplot(2,2,4)
     ax4.plot(val_losses)
-    ax4.set_title('norms', fontsize=15)
+    ax4.set_title('val_loss', fontsize=15)
     ax4.set_xlabel('Global steps', fontsize=15)
-    ax4.set_ylabel('norm', fontsize=15)
+    ax4.set_ylabel('val_loss', fontsize=15)
     fig.savefig('./results/' + str(config.omega_exp) + '/' + str(config.use_act) + '.png')
     plt.close()
     return
@@ -79,6 +80,11 @@ def center_data(X):
     reduced_mean = reduced_mean.astype(np.float32)
     return reduced_mean
 
+
+def parity_batch(input_length, batch_size):
+    xs = [np.random.randint(0, 2, input_length) for _ in range(batch_size)]
+    ys = [[0] if np.sum(x) % 2 == 0 else [1] for x in xs]
+    return xs, ys
 
 def get_batch_with_labels(num, data, labels):
     '''
@@ -105,7 +111,7 @@ def get_batch(num, data):
     return np.asarray(data_shuffle)
 
 
-def get_data(data,fill_points,a_):
+def get_data(data, fill_points, a_, config):
     if data == 'sine':
         X_o = SINE_data()
         X_o = center_data(X_o)
@@ -132,9 +138,16 @@ def get_data(data,fill_points,a_):
         X = X / 255.0
         d_dim = 3072
         code_dim = 2
-        X = X[:40000]
+        X1 = X[:40000]
         X_val = X[-10000:]
-        return X, X_val, d_dim, code_dim
+        print(X1.shape, X_val.shape)
+        del X
+        return X1, X_val, d_dim, code_dim
+    elif data == 'parity':
+        d_dim = config.parity_length
+        X, y = parity_batch(config.parity_length, 30000)
+        X_val, y_val = parity_batch(config.parity_length, 5000)
+        return X, y, X_val, y_val, d_dim
     elif data == 'swiss':
         X_o = SWISS_data()
         #X_o = 1 / (1 + np.exp(-1* X_o))
@@ -475,9 +488,11 @@ def activation(act_key, v, l):
     
     
 def adaptive_lambda(config,step,norms):
-    if (step > config.adaptive_threshold) and (step > config.u_freq):
+    if (step > config.adaptive_threshold) and (step > config.u_freq) and (step > config.adaptive_start):
         avg_p = np.mean(norms[-(2*config.adaptive_threshold):-config.adaptive_threshold])
         avg_c = np.mean(norms[-config.adaptive_threshold:])
+        if avg_p == 0:
+            avg_p = 1
         if ( (avg_c - avg_p)  / avg_p ) < -config.norm_strict:
             config.delta_l = config.delta_l*(1.5)
             #config.u_freq = config.u_freq - config.u_freq_delta
