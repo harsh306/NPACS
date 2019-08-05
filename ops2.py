@@ -83,6 +83,7 @@ def center_data(X):
 
 def parity_batch(input_length, batch_size):
     xs = [np.random.randint(0, 2, input_length) for _ in range(batch_size)]
+    xs.append(np.ones(shape=input_length, dtype=int))
     ys = [[0] if np.sum(x) % 2 == 0 else [1] for x in xs]
     return xs, ys
 
@@ -145,8 +146,8 @@ def get_data(data, fill_points, a_, config):
         return X1, X_val, d_dim, code_dim
     elif data == 'parity':
         d_dim = config.parity_length
-        X, y = parity_batch(config.parity_length, 30000)
-        X_val, y_val = parity_batch(config.parity_length, 5000)
+        X, y = parity_batch(config.parity_length, 200000)
+        X_val, y_val = parity_batch(config.parity_length, 50000)
         return X, y, X_val, y_val, d_dim
     elif data == 'swiss':
         X_o = SWISS_data()
@@ -485,14 +486,12 @@ def activation(act_key, v, l):
         return v
     
     
-    
-    
 def adaptive_lambda(config,step,norms):
     if (step > config.adaptive_threshold) and (step > config.u_freq) and (step > config.adaptive_start):
         avg_p = np.mean(norms[-(2*config.adaptive_threshold):-config.adaptive_threshold])
         avg_c = np.mean(norms[-config.adaptive_threshold:])
         if avg_p == 0:
-            avg_p = 1
+            avg_p = 0.2
         if ( (avg_c - avg_p)  / avg_p ) < -config.norm_strict:
             config.delta_l = config.delta_l*(1.5)
             #config.u_freq = config.u_freq - config.u_freq_delta
@@ -510,8 +509,10 @@ def adaptive_lambda(config,step,norms):
         else:
             pass
 
-        if max(norms[-config.adaptive_threshold:]) >= 0.25:
+        if max(norms[-config.adaptive_threshold:]) >= 0.25:  # 5
             config.delta_l = config.delta_l/2
+            if config.delta_l <= config.delta_l_min:
+                config.delta_l = config.delta_l_min
 
     return config.delta_l
 

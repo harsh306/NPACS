@@ -71,6 +71,7 @@ def main():
                     config.secant_method) and (step > config.adaptive_start):  # stop the secant after 0.99
                 l_dash = sess.run(graph.l_new, feed_dict={graph.delta_l: config.delta_l})
                 config.delta_l = ops2.adaptive_lambda(config, step, norms)
+                print(config.delta_l, norm)
 
         # print("Step: %d, lambda %g, Loss: %g" %(step, sess.run(graph.l), loss) )
         # code = sess.run(graph.code, feed_dict={graph.x: npcs_ae.X})

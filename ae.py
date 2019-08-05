@@ -14,7 +14,7 @@ class AttrDict(dict):
 
 class NPCS_AE:
     def __init__(self, config):
-        self.X, self.X_val, self.d_dim, self.code_dim = ops2.get_data(config.data, config.fill_points, 1.0)
+        self.X, self.X_val, self.d_dim, self.code_dim = ops2.get_data(config.data, config.fill_points, 1.0, config)
         self.config = config
         self.limit = 1.0
         self.ev = None 
