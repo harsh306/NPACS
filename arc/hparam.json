@@ -1,0 +1,6 @@
+{
+    SOLVER: 'solver-name',
+    rev : false,
+    delta_l : 0.01
+    
+}
